@@ -1,5 +1,5 @@
 # Retail Banking Support Agent — Copilot Studio + Free PII/Safety Stack
-![Alt text](Screenshot%202026-05-21%20152315.png)
+![Alt text](Screenshot%202026-05-22%20002420.png)
 
 A customer-support agent for a retail bank, built in **Microsoft Copilot Studio**, backed by a
 **free, self-hosted safety + prompt-routing service**. It detects and redacts PII, identifies the
