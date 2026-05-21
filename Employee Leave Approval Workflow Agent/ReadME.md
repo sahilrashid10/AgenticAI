@@ -13,6 +13,8 @@
 ---
 
 ## Overview
+![Alt text](/Screenshot 2026-05-21 152315.png)
+![Alt text](/Screenshot 2026-05-21 152259.png)
 
 This project implements an **HR Leave Approval agent** in Microsoft Copilot Studio. An employee submits a leave request in natural language, and the agent:
 
