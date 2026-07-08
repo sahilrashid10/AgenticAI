@@ -1,8 +1,7 @@
 from semantic_kernel.functions import kernel_function
-from models.customer import Customer
-
 class CustomerPlugin:
 
+# decorator function: only these functions will be exposed to the kernel when registering the plugin
     @kernel_function(
         description="Validate a customer record",
         name="validate_customer"
