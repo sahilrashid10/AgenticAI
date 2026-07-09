@@ -1,0 +1,64 @@
+1.
+
+What is agent_scratchpad?
+
+This is very important.
+
+Imagine the agent thinks like this:
+
+User:
+Register Sahil.
+
+↓
+
+Thought:
+I should validate first.
+
+↓
+
+Calls validate_customer()
+
+↓
+
+Gets result
+
+↓
+
+Thought:
+Validation passed.
+
+↓
+
+Calls check_customer_exists()
+
+↓
+
+Gets result
+
+↓
+
+Thought:
+Customer doesn't exist.
+
+↓
+
+Calls save_customer()
+
+↓
+
+Now answer user.
+
+Where are all those intermediate thoughts and tool outputs stored?
+
+👉 In:
+
+{agent_scratchpad}
+
+Semantic Kernel hides this from you.
+
+LangChain exposes it.
+
+This is one of the biggest philosophical differences between the frameworks.
+
+
+2.
