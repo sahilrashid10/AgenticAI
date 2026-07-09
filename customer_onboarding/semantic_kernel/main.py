@@ -123,7 +123,7 @@ async def main():
         print("\n========== Welcome Email ==========\n")
         print(welcome_email)
 
-        print("\n========== Task Checklist ==========\n")
+        print("\n========== Task Checklist =========\n")
         print(task_list)
 
     except Exception as e:
