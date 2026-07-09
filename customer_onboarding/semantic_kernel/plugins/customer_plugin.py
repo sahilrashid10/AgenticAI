@@ -1,3 +1,4 @@
+from utils.logger import log
 from semantic_kernel.functions import kernel_function
 class CustomerPlugin:
 
@@ -13,13 +14,47 @@ class CustomerPlugin:
         company: str
     ) -> str:
 
-        if not name.strip():
-            return "Invalid: Customer name is required."
-
-        if not company.strip():
-            return "Invalid: Company name is required."
-
+        log("Validating customer")
         if "@" not in email:
             return "Invalid: Email address is not valid."
 
         return "Customer record is valid."
+    
+    @kernel_function(
+        description="Save a validated customer",
+        name="save_customer"
+    )
+    def save_customer(
+        self,
+        name: str,
+        email: str,
+        company: str
+    ) -> str:
+
+        from utils.database import save_customer
+        log("Saving customer")
+
+        customer = {
+            "name": name,
+            "email": email,
+            "company": company
+        }
+
+        return save_customer(customer)
+    
+    @kernel_function(
+        description="Check if a customer already exists",
+        name="customer_exists"
+    )
+    def customer_exists(
+        self,
+        email: str
+    ) -> str:
+
+        from utils.database import customer_exists
+
+        if customer_exists(email):
+            return "Customer already exists."
+
+        return "Customer does not exist."
+    

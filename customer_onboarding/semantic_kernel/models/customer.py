@@ -3,5 +3,5 @@ from pydantic import BaseModel, EmailStr
 
 class Customer(BaseModel):
     name: str
-    email: EmailStr
+    email: str
     company: str

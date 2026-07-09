@@ -1,26 +1,54 @@
+import asyncio
+
+from openai import AsyncOpenAI
+
 from semantic_kernel import Kernel
+from semantic_kernel.functions import KernelArguments
 
-from config.settings import GITHUB_TOKEN, MODEL_NAME
+from semantic_kernel.connectors.ai.open_ai import (
+    OpenAIChatCompletion,
+    OpenAIChatPromptExecutionSettings,
+)
+from semantic_kernel.connectors.ai.function_choice_behavior import (
+    FunctionChoiceBehavior,
+)
 
-from plugins.customer_plugin import CustomerPlugin
+from config.settings import GROQ_API_KEY, MODEL_NAME
+from config.prompts import (
+    CUSTOMER_ONBOARDING_PROMPT,
+    WELCOME_EMAIL_PROMPT,
+    TASK_PROMPT,
+)
 
 from models.customer import Customer
-
-from semantic_kernel.connectors.ai.open_ai import OpenAIChatCompletion
-from semantic_kernel.connectors.ai.open_ai import OpenAIChatPromptExecutionSettings
-
-from semantic_kernel.connectors.ai.function_choice_behavior import FunctionChoiceBehavior
+from plugins.customer_plugin import CustomerPlugin
 
 
-import asyncio
-from openai import AsyncOpenAI
+def normalize_onboarding_response(response):
+    response_text = str(response)
+    response_lower = response_text.lower()
+
+    if "customer already registered" in response_lower:
+        return "Customer already registered."
+
+    if "successfully saved" in response_lower or "saved successfully" in response_lower:
+        return "Customer has been successfully saved."
+
+    for line in response_text.splitlines():
+        line = line.strip()
+        if line.startswith("Invalid:"):
+            return line
+
+    return response_text.strip()
+
 
 async def main():
 
     client = AsyncOpenAI(
-        api_key=GITHUB_TOKEN,
-        base_url="https://models.github.ai/inference"
-)
+        api_key=GROQ_API_KEY,
+        base_url="https://api.groq.com/openai/v1"
+    )
+
     kernel = Kernel()
 
     kernel.add_service(
@@ -31,60 +59,75 @@ async def main():
         )
     )
 
-    settings = OpenAIChatPromptExecutionSettings(
-        # this value is from 0 to 1, more the value more the randomness in the output, less the value more deterministic the output will be.
-        # temperature=0.2, not changing when using the github model, as it is not working as expected, so using the default value of 1
-        function_choice_behavior=FunctionChoiceBehavior.Auto()
+    onboarding_settings = OpenAIChatPromptExecutionSettings(
+        temperature=0,
+        function_choice_behavior=FunctionChoiceBehavior.Auto(
+            auto_invoke=True,
+            filters={"included_plugins": ["CustomerPlugin"]}
+        )
     )
+
+    generation_settings = OpenAIChatPromptExecutionSettings()
 
     kernel.add_plugin(
         CustomerPlugin(),
         plugin_name="CustomerPlugin"
     )
-    customer = Customer(
-        name="Sahil Rashid",
-        email="sahil@gmail.com",
-        company="MAQ Software"
-    )
 
-    # testing the plugin function
-        # plugin = CustomerPlugin()
+    try:
+        customer = Customer(
+            name=input("Customer Name: "),
+            email=input("Customer Email: "),
+            company=input("Company Name: ")
+        )
 
-        # validation_result = plugin.validate_customer(
-        #     customer.name,
-        #     customer.email,
-        #     customer.company
-        # )
+        onboarding_args = KernelArguments(
+            settings=onboarding_settings,
+            name=customer.name,
+            email=customer.email,
+            company=customer.company
+        )
 
-        # print(validation_result)
+        response = await kernel.invoke_prompt(
+            CUSTOMER_ONBOARDING_PROMPT,
+            arguments=onboarding_args
+        )
 
-    prompt = f"""
-    You are a Customer Onboarding Assistant.
+        onboarding_result = normalize_onboarding_response(response)
 
-    A customer wants to register.
+        print("\n========== Onboarding Result ==========\n")
+        print(onboarding_result)
 
-    Customer Details:
+        customer_saved = "successfully saved" in onboarding_result.lower()
 
-    Name: {customer.name}
-    Email: {customer.email}
-    Company: {customer.company}
+        if not customer_saved:
+            return
 
-    First validate the customer using the available plugin.
+        generation_args = KernelArguments(
+            settings=generation_settings,
+            name=customer.name,
+            email=customer.email,
+            company=customer.company
+        )
 
-    If validation fails,
-    return only the validation error.
+        welcome_email = await kernel.invoke_prompt(
+            WELCOME_EMAIL_PROMPT,
+            arguments=generation_args
+        )
 
-    If validation succeeds,
+        task_list = await kernel.invoke_prompt(
+            TASK_PROMPT,
+            arguments=generation_args
+        )
 
-    1. Draft a welcome email.
-    2. Generate an internal onboarding task list.
-    """
-    response = await kernel.invoke_prompt(
-        prompt,
-        settings=settings
-    )
+        print("\n========== Welcome Email ==========\n")
+        print(welcome_email)
 
-    print(response)
+        print("\n========== Task Checklist ==========\n")
+        print(task_list)
+
+    except Exception as e:
+        print(f"Error: {e}")
 
 
 if __name__ == "__main__":
