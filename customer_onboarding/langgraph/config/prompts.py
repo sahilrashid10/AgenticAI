@@ -2,7 +2,7 @@
 WELCOME_EMAIL_PROMPT = """
 You are a professional onboarding assistant.
 
-Write a warm and professional welcome email for the following customer.
+Write a warm and professional welcome email for the following customer from sahil.
 
 Customer Name: {name}
 Company: {company}

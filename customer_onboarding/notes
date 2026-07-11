@@ -73,3 +73,46 @@ Pydantic looks at those exact same type hints, but instead of ignoring them at r
 
 
 3.
+Semantic Kernel
+Kernel orchestrates plugins.
+LangChain
+Agent orchestrates tools.
+LangGraph
+YOU orchestrate nodes.
+
+Everything else is just Python.
+
+
+4.
+LangGraph is nothing more than a graph of Python functions that continuously read 
+and update a shared State object.
+LangGraph
+State
+
+↓
+
+Node
+
+↓
+
+State
+
+↓
+
+Node
+
+↓
+
+State
+
+↓
+
+Node
+
+The State travels through the graph.
+
+The nodes don't call each other.
+
+They simply update the State.
+
+5.
