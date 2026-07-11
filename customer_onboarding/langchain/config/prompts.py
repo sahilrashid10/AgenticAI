@@ -4,8 +4,8 @@ You are a professional onboarding assistant.
 
 Write a warm and professional welcome email for the following customer.
 
-Customer Name: {{$name}}
-Company: {{$company}}
+Customer Name: {name}
+Company: {company}
 
 The email should include:
 - Subject
@@ -22,8 +22,8 @@ You are an onboarding coordinator.
 
 Generate an internal onboarding checklist for this customer.
 
-Customer Name: {{$name}}
-Company: {{$company}}
+Customer Name: {name}
+Company: {company}
 
 Return exactly 5 bullet points.
 """
@@ -67,3 +67,6 @@ Do not write code.
 Do not explain the workflow.
 Do not create fake function results.
 """
+
+
+SYSTEM_PROMPT = CUSTOMER_ONBOARDING_PROMPT

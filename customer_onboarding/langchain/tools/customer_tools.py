@@ -1,57 +1,50 @@
 from langchain_core.tools import tool
+
 from utils.logger import log
 
-@tool(
-        description="Validate a customer record",
-        name="validate_customer"
-    )
+
+@tool("validate_customer", description="Validate a customer record")
 def validate_customer(
-        self,
-        name: str,
-        email: str,
-        company: str
-    ) -> str:
+    name: str,
+    email: str,
+    company: str
+) -> str:
 
-        log("Validating customer")
-        if "@" not in email:
-            return "Invalid: Email address is not valid."
+    log("Validating customer")
+    if "@" not in email:
+        return "Invalid: Email address is not valid."
 
-        return "Customer record is valid."
-    
-@tool(
-        description="Save a validated customer",
-        name="save_customer"
-    )
+    return "Customer record is valid."
+
+
+@tool("save_customer", description="Save a validated customer")
 def save_customer(
-        self,
-        name: str,
-        email: str,
-        company: str
-    ) -> str:
+    name: str,
+    email: str,
+    company: str
+) -> str:
 
-        from utils.database import save_customer
-        log("Saving customer")
+    from utils.database import save_customer as save_customer_record
 
-        customer = {
-            "name": name,
-            "email": email,
-            "company": company
-        }
+    log("Saving customer")
 
-        return save_customer(customer)
-    
-@tool(
-        description="Check if a customer already exists",
-        name="customer_exists"
-    )
+    customer = {
+        "name": name,
+        "email": email,
+        "company": company
+    }
+
+    return save_customer_record(customer)
+
+
+@tool("customer_exists", description="Check if a customer already exists")
 def customer_exists(
-        self,
-        email: str
-    ) -> str:
+    email: str
+) -> str:
 
-        from utils.database import customer_exists
+    from utils.database import customer_exists as customer_exists_record
 
-        if customer_exists(email):
-            return "Customer already exists."
+    if customer_exists_record(email):
+        return "Customer already exists."
 
-        return "Customer does not exist."
+    return "Customer does not exist."

@@ -1,100 +1,125 @@
-import os
-
-from attrs import validate
 from dotenv import load_dotenv
 
+from langchain_core.messages import HumanMessage
+from langchain.agents import create_agent
+
 from langchain_groq import ChatGroq
-
-from langchain.agents import (
-    create_tool_calling_agent,
-    AgentExecutor
-)
-
-from langchain_core.prompts import ChatPromptTemplate
-
-from tools.customer_tools import (
-    validate_customer,
-    check_customer_exists,
-    store_customer
-)
 
 from config.settings import (
     GROQ_API_KEY,
     MODEL_NAME
 )
 
-from config.prompts import SYSTEM_PROMPT
+from config.prompts import (
+    CUSTOMER_ONBOARDING_PROMPT,
+    TASK_PROMPT,
+    WELCOME_EMAIL_PROMPT
+)
+
+from tools.customer_tools import (
+    validate_customer,
+    customer_exists,
+    save_customer
+)
 
 from models.customer import Customer
-
-
 load_dotenv()
 
 
 llm = ChatGroq(
-    api_key=GROQ_API_KEY,
     model=MODEL_NAME,
+    api_key=GROQ_API_KEY,
     temperature=0
 )
-
 # no registration of the tools is needed, as the @tool decorator handles that automatically unlike in the semantic kernel version of the code. 
 # The tools are automatically registered with the agent when they are imported.
 tools = [
     validate_customer,
-    check_customer_exists,
-    store_customer
+    customer_exists,
+    save_customer
 ]
 
-
-prompt = ChatPromptTemplate.from_messages(
-    [
-        ("system", SYSTEM_PROMPT),
-        ("human", "{input}"),
-        ("placeholder", "{agent_scratchpad}")
-    ]
-)
-
-agent = create_tool_calling_agent(
-    llm=llm,
+agent = create_agent(
+    model=llm,
     tools=tools,
-    prompt=prompt
-)
-# the agent knows how to think and this executor
-# will handle the execution of the agent's actions, including calling the appropriate tools and managing the conversation flow.
-agent_executor = AgentExecutor(
-    agent=agent,
-    tools=tools,
-    verbose=True
+    system_prompt=CUSTOMER_ONBOARDING_PROMPT
 )
 
-# Why verbose=True?
-# This is one of my favorite LangChain features.
-# Instead of only seeing:
-# Customer saved.
-# You'll see something like:
-# Entering AgentExecutor...
-# Thought:...
 
+def format_prompt(prompt_template: str, customer: Customer) -> str:
+    return prompt_template.format(
+        name=customer.name,
+        company=customer.company
+    )
+
+
+def invoke_text_prompt(prompt_template: str, customer: Customer) -> str:
+    response = llm.invoke([
+        HumanMessage(content=format_prompt(prompt_template, customer))
+    ])
+
+    return response.content if hasattr(response, "content") else str(response)
+
+
+def normalize_onboarding_response(response_text: str) -> str:
+    response_lower = response_text.lower()
+
+    if "customer already registered" in response_lower:
+        return "Customer already registered."
+
+    if "successfully saved" in response_lower or "saved successfully" in response_lower:
+        return "Customer has been successfully saved."
+
+    for line in response_text.splitlines():
+        line = line.strip()
+        if line.startswith("Invalid:"):
+            return line
+
+    return response_text.strip()
+
+
+def onboarding_succeeded(response_text: str) -> bool:
+    response_lower = response_text.lower()
+
+    return "successfully saved" in response_lower or "saved successfully" in response_lower
 
 customer = Customer(
-    name="Sahil Rashid",
-    email="sahil@gmail.com",
-    company="MAQ Software"
+    name=input("Customer Name: "),
+    email=input("Customer Email: "),
+    company=input("Company Name: ")
 )
 
 
-user_input = f"""
+response = agent.invoke(
+    {
+        "messages": [
+            {
+                "role": "user",
+                "content":
+f"""
 Register this customer.
 
 Name: {customer.name}
 Email: {customer.email}
 Company: {customer.company}
 """
-# invoke returns a dictionary thats why we don't print just the output.
-response = agent_executor.invoke(
-    {
-        "input": user_input
+            }
+        ]
     }
 )
 
-print(response["output"])
+onboarding_result = response["messages"][-1].content
+onboarding_result = normalize_onboarding_response(onboarding_result)
+
+print("\n========== Onboarding Result =========\n")
+print(onboarding_result)
+
+if onboarding_succeeded(onboarding_result):
+    welcome_email = invoke_text_prompt(WELCOME_EMAIL_PROMPT, customer)
+    task_list = invoke_text_prompt(TASK_PROMPT, customer)
+
+    print("\n========== Welcome Email =========\n")
+    print(welcome_email)
+
+    print("\n========== Task Checklist =========\n")
+    print(task_list)
