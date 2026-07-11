@@ -62,3 +62,14 @@ This is one of the biggest philosophical differences between the frameworks.
 
 
 2.
+# Standard Python function with a type hint
+def process_age(age: int):
+    print(f"Age is {age}")
+
+# Python ignores the 'int' hint and allows this string to pass through!
+process_age("twenty-five") 
+2. Pydantic: The Runtime "Bouncer"
+Pydantic looks at those exact same type hints, but instead of ignoring them at runtime, it actively enforces them.
+
+
+3.
