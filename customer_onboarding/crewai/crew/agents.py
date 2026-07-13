@@ -2,7 +2,8 @@ from crewai import Agent
 from crewai import LLM
 
 from config.settings import (
-    GROQ_API_KEY,
+    LLM_API_KEY,
+    LLM_PROVIDER,
     MODEL_NAME
 )
 
@@ -12,12 +13,15 @@ from tools.customer_tools import (
     save_customer
 )
 
-llm = LLM(
-    model=MODEL_NAME,
-    provider="groq",
-    api_key=GROQ_API_KEY,
-    temperature=0
-)
+llm_config = {
+    "model": MODEL_NAME,
+    "provider": LLM_PROVIDER,
+    "temperature": 0,
+}
+if LLM_API_KEY:
+    llm_config["api_key"] = LLM_API_KEY
+
+llm = LLM(**llm_config)
 
 
 validation_agent = Agent(
