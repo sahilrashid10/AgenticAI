@@ -1,0 +1,23 @@
+[
+    {
+        "id": "1",
+        "customer": "John Smith",
+        "company": "ABC Ltd",
+        "interest": "Azure Migration",
+        "budget": "$30000"
+    },
+    {
+        "id": "2",
+        "customer": "Alice Johnson",
+        "company": "XYZ Corp",
+        "interest": "Microsoft Fabric",
+        "budget": "$45000"
+    },
+    {
+        "id": "3",
+        "customer": "Bob Williams",
+        "company": "CloudTech",
+        "interest": "AWS Migration",
+        "budget": "$25000"
+    }
+]
