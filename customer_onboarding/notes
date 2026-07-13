@@ -116,3 +116,42 @@ The nodes don't call each other.
 They simply update the State.
 
 5.
+Semantic Kernel
+Kernel
+
+↓
+
+Plugins
+LangChain
+Agent
+
+↓
+
+Tools
+LangGraph
+Graph
+
+↓
+
+Nodes
+CrewAI
+Crew
+
+↓
+
+Agents
+
+↓
+
+Tasks
+
+
+6. The Task owns the Agent, not the other way around.
+
+7.
+prompt: 
+now let's say I want a specific error if the validation fails or email is wrong, I should just add it inside the task descriptoon and output and the agent goal and backstory that if some wrong happens just tell me nd it will ddo it , this is so easy liek no etra code needed
+ reply:
+😂 Exactly. This is the first thing people love about CrewAI.
+
+8.
