@@ -1,0 +1,119 @@
+1.
+Instead of storing
+
+{
+    "customer":"John",
+    "interest":"Azure Migration",
+    "budget":"30000"
+}
+
+We'll store
+
+Customer: John Smith
+Company: ABC Ltd
+Interest: Azure Migration
+Budget: $30000
+
+This is called a Document.
+
+Later, this document gets converted into an embedding.
+
+Why don't we just store JSON?
+
+Because semantic search works on natural language, not JSON objects.
+
+2.
+Preparing the documents ✅ (current step)
+Generating embeddings and storing them (next step)
+
+If you understand this separation, the rest of the project becomes much easier.
+
+3.
+# Think of it as a tiny AI model trained for understanding sentence meaning.
+# Example:
+# Azure Migration
+# ↓
+# [0.21, -0.44, 0.17, ...]
+embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+# It returns a vector with 384 numbers.
+# Those numbers are what ChromaDB searches.
+
+4.
+This is probably the single most important concept in RAG, Agentic AI, Semantic Kernel, LangChain, CrewAI—everything.
+
+Let's make it intuitive.
+
+Suppose I write:
+
+Azure Migration
+
+The embedding model sees:
+
+[-0.12,
+ 0.45,
+ 0.91,
+ ...
+ 384 numbers]
+
+Now another sentence:
+
+Move my workloads to Azure
+
+becomes
+
+[-0.11,
+ 0.47,
+ 0.89,
+ ...
+ 384 numbers]
+
+Notice anything?
+
+The numbers are not identical, but they're very close.
+
+That's because both sentences have the same meaning.
+
+Real-life analogy
+
+Imagine every sentence is a house on a map.
+
+                   AI
+                    ▲
+                    │
+          Azure Migration
+                 ●
+                / \
+               /   \
+              /     \
+Move workloads ●      ● AWS EC2
+Similar meanings are physically close.
+Different meanings are far away.
+When the user asks:
+"Who wants Azure?"
+The embedding model converts the question into another point on this map.
+Then ChromaDB simply says:
+"The closest document is John's."
+That's semantic search.
+
+
+5.
+question: why loading all 22 mil parameters of all-MiniLM-L6-v2.
+answer: Here is a quick, 5-line summary of how that process works:
+
+The Setup: When you pass a sentence to the model, it first chops it up into numbers (tokens).
+
+The Math: Your computer then mathematically multiplies those tokens against all 22 million of the model's parameters.
+
+The Filter: Those parameters act like a massive filter, sculpting your text into its final numerical vector (embedding).
+
+The Speed: While doing 22 million math problems sounds slow, modern computer chips (GPUs) crunch them all simultaneously in milliseconds.
+
+The Why: This is exactly why the model must be loaded into memory—your computer needs instant access to all 22 million numbers every single time you want to search a sentence!
+
+6.
+Cosine similarity measures the direction of the similarities and not the magnitude.
+A.B/(||A|| X ||B||) ----> -1 to 1.
+
+Used for doccument similarity and semantic searches.
+
+6.
