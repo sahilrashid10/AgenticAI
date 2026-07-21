@@ -3,3 +3,4 @@
 **/__pycache__/
 *.pyc
 .vscode/
+Sales_Intelligence_Agent/chroma_db/

@@ -117,3 +117,123 @@ A.B/(||A|| X ||B||) ----> -1 to 1.
 Used for doccument similarity and semantic searches.
 
 6.
+What a "Collection" Actually Looks Like
+
+If you could magically open up ChromaDB and look inside your sales-memory collection, it would look almost exactly like a 3-column Excel spreadsheet:
+
+ID (The Name Tag)
+
+Document (The Text)
+
+Embedding (The Math/Encoded Data)
+
+record_001
+
+"Customer: Sahil, Company: MAQ..."
+
+[0.12, -0.55, 0.89, ... 381 more]
+
+record_002
+
+"Customer: John, Company: Apple..."
+
+[-0.41, 0.11, 0.72, ... 381 more]
+
+Do the IDs get encoded later?
+
+No! The IDs are NEVER encoded.
+Only the Documents (the text) get encoded into math.
+
+7.
+use upsert instead of add to avoid duplicates
+DOCUEMNT.upsert()
+
+8.
+The UUID folder stores the actual vector index and associated files used for efficient similarity search.
+
+9.
+You'll see this parameter:
+
+n_results=2
+
+This means
+
+Return the Top 2 most similar documents.
+
+This is called Top-K Retrieval.
+
+10.
+Now let's understand how Semantic Kernel fits into RAG
+
+This is the architecture we're building.
+
+                ┌────────────────────────┐
+                │   User Question        │
+                └────────────┬───────────┘
+                             │
+                             ▼
+                   Embedding Model
+                             │
+                             ▼
+                      ChromaDB Search
+                             │
+                             ▼
+                  Retrieved CRM Documents
+                             │
+                             ▼
+               Build Augmented Prompt
+                             │
+                             ▼
+                  Semantic Kernel
+                             │
+                             ▼
+                      Grok / Groq
+                             │
+                             ▼
+                     Final Response
+
+Notice something...
+
+Semantic Kernel doesn't replace ChromaDB.
+
+Semantic Kernel is responsible for:
+
+managing prompts
+calling the LLM
+orchestrating plugins/functions (later)
+
+ChromaDB is still responsible for retrieval.
+
+11.
+New Concept: Context
+
+Suppose ChromaDB returned
+
+Customer: John Smith
+Interest: Azure Migration
+
+Customer: Alice Johnson
+Interest: Microsoft Fabric
+
+We'll combine them into one string.
+
+context = """
+
+Customer: John Smith
+Interest: Azure Migration
+
+Customer: Alice Johnson
+Interest: Microsoft Fabric
+
+"""
+
+This string is called the Context.
+
+12.
+| Component           | Job                                                                 |
+| ------------------- | ------------------------------------------------------------------- |
+| SentenceTransformer | Understands semantic meaning and converts text → vectors            |
+| ChromaDB            | Retrieves the most relevant information                             |
+| Groq (LLM)          | Reads retrieved information and generates a natural-language answer |
+
+13.
