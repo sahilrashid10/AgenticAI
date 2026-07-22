@@ -1,0 +1,39 @@
+IMPORTANT CONCEPTS : ANN, RNN, Transformer
+
+1.
+Sentence Transformers Tokenization Pooling Mean Pooling Explained (YT).
+
+2.
+Sequence model (eg:RNN)
+Google translate --> RNN
+next word recomendation ---> RNN
+
+3.
+. What is Chunking?
+Simple Definition
+
+Chunking is the process of breaking a large document into smaller pieces before generating embeddings.
+
+Should we convert all 40 pages into one embedding?
+
+No.
+
+Why?
+EG: Newtons 3rd law.
+
+Because embeddings summarize meaning.
+
+Trying to summarize an entire contract into one vector is like trying to summarize an entire movie in one sentence.
+
+You lose details.
+1. context window se zada token bhej diye or
+2. Legal doc ke 17 page ki koyi info like notice period, the data is lost as we created the embeding for the whole doc and summarized as that's what embedding does.
+
+4.
+
+A summary converts text → shorter text.
+An embedding converts text → a point in a high-dimensional vector space (384 numbers for MiniLM).
+
+5.
+
+

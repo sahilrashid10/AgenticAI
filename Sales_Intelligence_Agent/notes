@@ -110,11 +110,26 @@ The Speed: While doing 22 million math problems sounds slow, modern computer chi
 
 The Why: This is exactly why the model must be loaded into memory—your computer needs instant access to all 22 million numbers every single time you want to search a sentence!
 
+
+
+
 6.
 Cosine similarity measures the direction of the similarities and not the magnitude.
 A.B/(||A|| X ||B||) ----> -1 to 1.
 
 Used for doccument similarity and semantic searches.
+
+why only the cosine:
+Think of your 384-dimensional space like a giant map where every piece of data is an arrow pointing from the origin (0,0) out to a coordinate.
+
+If you use regular straight-line distance (Euclidean distance), it gets messed up because of document length. A long document might have huge numbers just because it contains more words, pushing its point way out into space, even if it's about the exact same topic as a short document.
+
+Cosine distance fixes this by completely ignoring how long the arrow is. Instead, it only measures the angle between the user's question arrow and the database's document arrow:
+
+
+
+
+
 
 6.
 What a "Collection" Actually Looks Like
