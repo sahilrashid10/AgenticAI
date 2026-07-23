@@ -1,0 +1,7 @@
+pymupdf
+chromadb
+sentence-transformers
+semantic-kernel
+python-dotenv
+openai
+ipykernel

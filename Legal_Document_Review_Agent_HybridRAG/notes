@@ -36,4 +36,168 @@ An embedding converts text → a point in a high-dimensional vector space (384 n
 
 5.
 
+Golden Rule of Chunking
 
+A chunk should represent one complete idea.
+
+6.
+Another Example
+
+Suppose a legal contract says:
+
+Payment Terms
+
+The client must pay within 30 days.
+
+If payment is delayed,
+a penalty of 5% will be charged.
+
+Good chunk:
+
+Payment Terms
+
+The client must pay within 30 days.
+
+If payment is delayed,
+a penalty of 5% will be charged.
+
+Everything is about Payment Terms.
+
+Bad chunk:
+
+Payment Terms
+
+The client must pay
+
+Second chunk:
+
+within 30 days.
+
+If payment is delayed...
+
+Now imagine the user asks:
+
+"When is payment due?"
+
+The vector search might retrieve the first chunk because it contains payment.
+
+But the answer (30 days) is in the second chunk.
+
+The LLM never sees it.
+------------------------------------IMPORTANT------------------------------------------
+This is called --------------------context fragmentation.----------------------------------
+Splitting related information across multiple chunks, making retrieval less accurate.
+6.
+
+Chunking is a trade-off.
+
+Small chunks
+
+✅ More precise
+
+❌ Can lose surrounding context.
+
+Large chunks
+
+✅ Preserve more context
+
+❌ Embeddings become less focused.
+
+A good AI Engineer tries to find the sweet spot.
+
+That's why there isn't one perfect chunk size.
+
+It depends on:
+
+document type
+embedding model
+LLM context window
+use case
+retrieval strategy
+
+
+This leads to the next big question
+
+You might naturally ask:
+
+"Okay... then how does an engineer decide where to split?"
+
+Excellent question.
+
+There are five major chunking strategies used in industry:
+
+Fixed-size chunking
+Sentence-based chunking
+Paragraph-based chunking
+Recursive chunking (the most common in production)
+Semantic chunking (the smartest, but more computationally expensive)
+
+
+7.
+| Strategy   | Quality | Speed | Production Use   |
+| ---------- | ------- | ----- | ---------------- |
+| Fixed Size | ⭐⭐      | ⭐⭐⭐⭐⭐ | Sometimes        |
+| Sentence   | ⭐⭐⭐     | ⭐⭐⭐⭐  | Sometimes        |
+| Paragraph  | ⭐⭐⭐⭐    | ⭐⭐⭐⭐  | Often            |
+| Recursive  | ⭐⭐⭐⭐⭐   | ⭐⭐⭐   | Very Common      |
+| Semantic   | ⭐⭐⭐⭐⭐   | ⭐⭐    | High-end Systems |
+
+8.
+
+Interview Insight ⭐
+
+If an interviewer asks:
+
+"Which chunking strategy would you choose for legal contracts?"
+
+A good answer would be:
+
+"I would typically use recursive chunking because it preserves the document's natural structure by trying to split on paragraphs, sections, and sentences before falling back to smaller units. Legal contracts are organized into logical clauses, so preserving that structure generally leads to better retrieval quality than fixed-size chunking."
+
+9.
+
+OVERLAP
+eg: CCTV
+
+10.
+
+Interview Question ⭐
+
+Why is overlap used in chunking?
+
+A strong answer would be:
+
+"Overlap preserves context across chunk boundaries. Without it, related information can be split between two chunks, causing the retriever to return incomplete context. By repeating a small portion of text in adjacent chunks, we improve the chances that the retrieved chunk contains enough information for the LLM to answer accurately."
+
+
+11.
+Interview-Level Takeaway ⭐
+
+If an interviewer asks:
+
+"How do you decide chunk size and overlap?"
+
+A strong answer is:
+
+"There isn't a universal value. It depends on the document type, the embedding model, the LLM's context window, and the retrieval quality we want. We usually start with reasonable defaults, evaluate the system on representative queries, and tune chunk size and overlap based on retrieval accuracy and answer quality."
+
+12.
+Remember one important thing:
+
+LLMs and embedding models cannot read PDF files directly.
+
+A PDF is just a file format.
+
+The model only understands text.
+
+So our first job is to convert:
+
+Contract.pdf
+
+↓
+
+Extract Text
+
+↓
+
+"This Agreement is entered into..."

@@ -1,6 +1,30 @@
+# Virtual environments
+.venv/
 **/.venv/
+
+# Environment files
+.env
 **/.env
+
+# Python cache and compiled files
+__pycache__/
 **/__pycache__/
-*.pyc
+*.py[cod]
+**/*.py[cod]
+
+# Byte-compiled / optimized / DLL files
+*.so
+
+# Editor folders
 .vscode/
-Sales_Intelligence_Agent/chroma_db/
+
+# ChromaDB local stores
+chroma_db/
+**/chroma_db/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS files
+Thumbs.db
+Desktop.ini
