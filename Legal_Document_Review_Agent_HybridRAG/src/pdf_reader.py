@@ -1,7 +1,14 @@
-from typing import List
-import fitz  # PyMuPDF
+import fitz
 
 
-def load_pdf(path: str) -> List[str]:
-    """Placeholder: load PDF and return list of page texts."""
-    raise NotImplementedError
+def read_pdf(file_path):
+    document = fitz.open(file_path)
+
+    text = ""
+
+    for page in document:
+        text += page.get_text()
+
+    document.close()
+
+    return text
