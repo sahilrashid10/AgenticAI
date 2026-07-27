@@ -1,203 +1,392 @@
-IMPORTANT CONCEPTS : ANN, RNN, Transformer
+# Legal Document Review Agent Notes
+## Embeddings:
+   embeddings = model.encode(chunks)
+    #     behind the scene of above line
+    #     Sentence(one chunk at a time)
 
-1.
-Sentence Transformers Tokenization Pooling Mean Pooling Explained (YT).
+            # ↓
 
-2.
-Sequence model (eg:RNN)
-Google translate --> RNN
-next word recomendation ---> RNN
+    # Tokenizer(each word in the chunk)
 
-3.
-. What is Chunking?
-Simple Definition
+            # ↓
+
+    # Token IDs(logcal numbers representing each token)
+
+            # ↓
+
+    # Token Embeddings (numbers representing each token in a high-dimensional space)
+
+            # ↓
+
+    # Transformer (Attention)
+
+            # ↓
+
+    # Contextual Token Embeddings (numbers representing each token in a high-dimensional space, but now with context from surrounding tokens)
+
+            # ↓
+
+    # Mean Pooling (combining the contextual token embeddings into a single vector representation for the entire chunk)
+
+            # ↓
+
+    # 384-dimensional Sentence Embedding (projected vector representation of the entire chunk in a 384-dimensional space)
+    return embeddings
+
+High-signal notes for the **Legal Document Review Agent Hybrid RAG** project. The focus here is on *chunking*, *embeddings*, *metadata*, and the data path from a PDF into a vector database.
+
+---
+
+## Core Concepts
+
+### ANN, RNN, and Transformers
+
+- **RNNs** are sequence models that are useful for tasks like translation and next-word prediction.
+- **Transformers** are the modern default for most language tasks because they handle context more effectively.
+- **Sentence Transformers** combine transformer encoders with pooling to produce sentence-level embeddings.
+
+### Why Chunking Exists
 
 Chunking is the process of breaking a large document into smaller pieces before generating embeddings.
 
-Should we convert all 40 pages into one embedding?
+If we try to embed an entire 40-page legal contract as a single vector, we lose detail. Embeddings summarize meaning, so important clauses such as notice periods, payment terms, or penalties can be diluted or lost.
 
-No.
+- A **summary** converts text into shorter text.
+- An **embedding** converts text into a point in a high-dimensional vector space.
 
-Why?
-EG: Newtons 3rd law.
+For MiniLM-style models, that vector is often **384 dimensions**.
 
-Because embeddings summarize meaning.
+---
 
-Trying to summarize an entire contract into one vector is like trying to summarize an entire movie in one sentence.
+## Golden Rule of Chunking
 
-You lose details.
-1. context window se zada token bhej diye or
-2. Legal doc ke 17 page ki koyi info like notice period, the data is lost as we created the embeding for the whole doc and summarized as that's what embedding does.
+> A chunk should represent one complete idea.
 
-4.
+For legal documents, that usually means preserving clause boundaries, section boundaries, and related sentences together.
 
-A summary converts text → shorter text.
-An embedding converts text → a point in a high-dimensional vector space (384 numbers for MiniLM).
+### Good vs Bad Chunking
 
-5.
+Good chunking keeps related legal language together:
 
-Golden Rule of Chunking
+> **Payment Terms**
+>
+> The client must pay within 30 days.
+>
+> If payment is delayed, a penalty of 5% will be charged.
 
-A chunk should represent one complete idea.
+Bad chunking splits a single idea across multiple pieces:
 
-6.
-Another Example
+> **Payment Terms**
+>
+> The client must pay
 
-Suppose a legal contract says:
+> within 30 days.
+>
+> If payment is delayed...
 
-Payment Terms
+If a user asks, *“When is payment due?”*, the retriever might return the first chunk because it contains the word *payment*, but the actual answer is in the second chunk. That is **context fragmentation**.
 
-The client must pay within 30 days.
+---
 
-If payment is delayed,
-a penalty of 5% will be charged.
+## Chunking Trade-offs
 
-Good chunk:
+Chunking is always a trade-off.
 
-Payment Terms
+- **Small chunks**
+    - More precise retrieval.
+    - Less surrounding context.
+- **Large chunks**
+    - More context preserved.
+    - Less focused embeddings.
 
-The client must pay within 30 days.
+There is no single perfect chunk size. It depends on:
 
-If payment is delayed,
-a penalty of 5% will be charged.
+- document type
+- embedding model
+- LLM context window
+- use case
+- retrieval strategy
 
-Everything is about Payment Terms.
+### Common Strategies
 
-Bad chunk:
+| Strategy | Quality | Speed | Production Use |
+| --- | --- | --- | --- |
+| Fixed size | Medium | Very fast | Sometimes |
+| Sentence-based | Good | Fast | Sometimes |
+| Paragraph-based | Very good | Fast | Often |
+| Recursive | Excellent | Moderate | Very common |
+| Semantic | Excellent | Slower | High-end systems |
 
-Payment Terms
+Recursive chunking is usually the strongest default for legal contracts because it tries to split on paragraphs, sections, and sentences before falling back to smaller units.
 
-The client must pay
+---
 
-Second chunk:
+## Overlap
 
-within 30 days.
+Overlap repeats a small portion of text between adjacent chunks so that context does not disappear at boundaries.
 
-If payment is delayed...
+This matters when a key clause spans two chunks. Without overlap, the retriever may return incomplete context and the LLM may miss the answer.
 
-Now imagine the user asks:
+### Interview-Ready Definition
 
-"When is payment due?"
+> Overlap preserves context across chunk boundaries. By repeating a small portion of text in adjacent chunks, we reduce the chance that important information is split away from the retrieved passage.
 
-The vector search might retrieve the first chunk because it contains payment.
+---
 
-But the answer (30 days) is in the second chunk.
+## Embedding Pipeline
 
-The LLM never sees it.
-------------------------------------IMPORTANT------------------------------------------
-This is called --------------------context fragmentation.----------------------------------
-Splitting related information across multiple chunks, making retrieval less accurate.
-6.
+LLMs and embedding models cannot read PDF files directly. A PDF is just a file format, so the first step is always to extract text.
 
-Chunking is a trade-off.
+```text
+Contract.pdf
+    ↓
+Extract Text
+    ↓
+Plain text
+    ↓
+Chunks
+    ↓
+Embeddings
+    ↓
+Vector Database
+```
 
-Small chunks
+### Typical Input and Output
 
-✅ More precise
+Input:
 
-❌ Can lose surrounding context.
+```text
+This is sentence one.
+This is sentence two.
+This is sentence three.
+```
 
-Large chunks
+Output:
 
-✅ Preserve more context
+```python
+[
+        "This is sentence one. This is sentence two.",
+        "This is sentence two. This is sentence three.",
+]
+```
 
-❌ Embeddings become less focused.
+The output is a **list**, not one string, because each element is later embedded separately.
 
-A good AI Engineer tries to find the sweet spot.
+### Batch Embedding
 
-That's why there isn't one perfect chunk size.
+When using SentenceTransformer, the model can embed the full list at once because it is optimized for batch processing.
 
-It depends on:
+```python
+chunks = [
+        "Payment Terms ...",
+        "Termination Clause ...",
+        "Confidentiality Clause ...",
+]
 
-document type
-embedding model
-LLM context window
-use case
-retrieval strategy
+embeddings = model.encode(chunks, batch_size=32, show_progress_bar=True)
+```
 
+Loading the embedding model only once is also important because model initialization is expensive. Reusing the same loaded model reduces startup overhead and improves performance.
 
-This leads to the next big question
+---
 
-You might naturally ask:
+## How SentenceTransformer Works
 
-"Okay... then how does an engineer decide where to split?"
+SentenceTransformer does not magically turn text into numbers. It follows a pipeline:
 
-Excellent question.
+```mermaid
+graph TD
+        A[Chunk] --> B[Tokenizer]
+        B --> C[Token IDs]
+        C --> D[Transformer Layers]
+        D --> E[Contextual Representations]
+        E --> F[Pooling]
+        F --> G[384-Dimensional Vector]
+```
 
-There are five major chunking strategies used in industry:
+### Interview Gold
 
-Fixed-size chunking
-Sentence-based chunking
-Paragraph-based chunking
-Recursive chunking (the most common in production)
-Semantic chunking (the smartest, but more computationally expensive)
+If someone asks, *“How does SentenceTransformer generate sentence embeddings?”*, a strong answer is:
 
+> The text is first tokenized into token IDs. Those tokens are passed through transformer layers where self-attention builds contextual representations. The model then pools the token embeddings, commonly with mean pooling, to produce one fixed-length vector for the whole sentence.
 
-7.
-| Strategy   | Quality | Speed | Production Use   |
-| ---------- | ------- | ----- | ---------------- |
-| Fixed Size | ⭐⭐      | ⭐⭐⭐⭐⭐ | Sometimes        |
-| Sentence   | ⭐⭐⭐     | ⭐⭐⭐⭐  | Sometimes        |
-| Paragraph  | ⭐⭐⭐⭐    | ⭐⭐⭐⭐  | Often            |
-| Recursive  | ⭐⭐⭐⭐⭐   | ⭐⭐⭐   | Very Common      |
-| Semantic   | ⭐⭐⭐⭐⭐   | ⭐⭐    | High-end Systems |
+---
 
-8.
+## Metadata and Persistence
 
-Interview Insight ⭐
+### Why Store Metadata?
 
-If an interviewer asks:
+Metadata gives each embedding useful context, such as:
 
-"Which chunking strategy would you choose for legal contracts?"
+- source document
+- page number
+- section name
+- document type
 
-A good answer would be:
+Similarity search works on embeddings, but metadata makes results traceable and filterable.
 
-"I would typically use recursive chunking because it preserves the document's natural structure by trying to split on paragraphs, sections, and sentences before falling back to smaller units. Legal contracts are organized into logical clauses, so preserving that structure generally leads to better retrieval quality than fixed-size chunking."
+### Why Use `PersistentClient`?
 
-9.
+Using a persistent vector client keeps the database on disk, so embeddings survive application restarts.
 
-OVERLAP
-eg: CCTV
+---
 
-10.
+## Data Shape in the Project
 
-Interview Question ⭐
+Instead of moving from PDF to raw strings to embeddings, the project should keep the information structured:
 
-Why is overlap used in chunking?
+```text
+PDF
+    ↓
+Page objects
+    ↓
+Chunk objects
+    ↓
+Chunk objects + embeddings
+    ↓
+ChromaDB
+```
 
-A strong answer would be:
+### Chunk Object Principle
 
-"Overlap preserves context across chunk boundaries. Without it, related information can be split between two chunks, causing the retriever to return incomplete context. By repeating a small portion of text in adjacent chunks, we improve the chances that the retrieved chunk contains enough information for the LLM to answer accurately."
+This is a good place to apply the idea of **making illegal states unrepresentable**.
 
+The chunk should always carry the information it needs, such as:
 
-11.
-Interview-Level Takeaway ⭐
+- ID
+- document name
+- page number
+- text
 
-If an interviewer asks:
+That way, other parts of the program are much less likely to lose the metadata accidentally.
 
-"How do you decide chunk size and overlap?"
+---
+
+## Interview Takeaways
+
+- For legal contracts, **recursive chunking** is usually a strong default because it preserves the document structure.
+- **Overlap** is useful because it protects against context loss at chunk boundaries.
+- **Chunk size** and **overlap** should be tuned based on document type, embedding model, context window, and retrieval quality.
+- Before embeddings are generated, documents should be ingested, cleaned if needed, and split into meaningful chunks.
+- The embedding model should be loaded once and reused.
+
+### A Strong Short Answer for Chunk Size and Overlap
+
+> There is no universal value. We usually start with reasonable defaults, test on representative queries, and tune chunk size and overlap based on retrieval accuracy and answer quality.
+
+---
+
+## Recap
+
+The main idea is simple: legal documents should be split into meaningful chunks that preserve context, carry metadata, and support accurate retrieval. That gives the LLM the best chance of answering questions from the right clause, section, or page.
+***********************************************
+## Our Domain Objects
+
+(Core idea:  Enrich the object instead of creaeting a new datastructure every step eg, list , then str etc.)
+We actually have three objects in this project.
+
+1. Page Object
+
+Represents one page of a PDF.
+
+{
+    "page": 1,
+    "text": "Payment Terms..."
+}
+
+Notice something.
+
+This object knows nothing about:
+
+embeddings ❌
+chunks ❌
+vector database ❌
+
+Its only responsibility is:
+
+"I represent one page."
+
+2. Chunk Object ⭐ (Most Important)
+
+This is the object that travels through almost the entire pipeline.
+
+{
+    "id": "nda_chunk_0",
+
+    "document": "nda.pdf",
+
+    "text": "Payment Terms...",
+
+    "start_char": 0,
+
+    "end_char": 500,
+
+    "start_page": 1,
+
+    "end_page": 2
+}
+
+Notice...
+
+No embedding yet.
+
+We'll add that later.
+
+3. Embedded Chunk Object
+
+After embedding generation...
+
+The SAME object becomes
+
+{
+    "id": "nda_chunk_0",
+
+    "document": "nda.pdf",
+
+    "text": "Payment Terms...",
+
+    "start_char": 0,
+
+    "end_char": 500,
+
+    "start_page": 1,
+
+    "end_page": 2,
+
+    "embedding": [384 numbers]
+}
+
+Notice something beautiful?
+
+We didn't create another list.
+
+We simply enriched the existing object.
+
+This is a pattern you'll see everywhere in production systems.
+
+##
+using dataclass0 --> much harder to make mistakes as this obj["fil"] will give an error
+
+##
+meone asks:
+
+Why use dataclasses instead of dictionaries?
 
 A strong answer is:
 
-"There isn't a universal value. It depends on the document type, the embedding model, the LLM's context window, and the retrieval quality we want. We usually start with reasonable defaults, evaluate the system on representative queries, and tune chunk size and overlap based on retrieval accuracy and answer quality."
+"Dataclasses provide a well-defined data model with better readability, IDE autocompletion, type hints, and reduced chances of key-related bugs. They make the codebase easier to maintain as the project grows."
+##
+Interview Tip ⭐
 
-12.
-Remember one important thing:
+If an interviewer asks:
 
-LLMs and embedding models cannot read PDF files directly.
+Why do you record the page boundary before appending the page text?
 
-A PDF is just a file format.
+A strong answer is:
 
-The model only understands text.
+"Because the current length of the accumulated text represents the index where the next page will begin. If I recorded it after appending, I'd get the page's ending position instead of its starting position."
 
-So our first job is to convert:
+That's a very strong engineering answer.
 
-Contract.pdf
 
-↓
-
-Extract Text
-
-↓
-
-"This Agreement is entered into..."
+##

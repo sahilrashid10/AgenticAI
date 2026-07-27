@@ -1,12 +1,29 @@
 import chromadb
-from typing import List, Optional
+
+client = chromadb.PersistentClient(path="chroma_db")
+
+collection = client.get_or_create_collection(
+    name="legal-documents"
+)
 
 
-def create_chroma_client(path: str = "chroma_db") -> chromadb.PersistentClient:
-    """Placeholder: create and return a ChromaDB client pointing at `path`."""
-    raise NotImplementedError
+def store_embeddings(chunks, embeddings):
 
+    ids = []
 
-def upsert_documents(client, collection_name: str, ids: List[str], documents: List[str], embeddings: List[List[float]]):
-    """Placeholder: upsert documents into a ChromaDB collection."""
-    raise NotImplementedError
+    metadata = []
+
+    for i in range(len(chunks)):
+        ids.append(f"chunk_{i}")
+
+        metadata.append({
+            "source": "nda.pdf",
+            "chunk_number": i
+        })
+
+    collection.upsert(
+        ids=ids,
+        documents=chunks,
+        embeddings=embeddings.tolist(),
+        metadatas=metadata
+    )
