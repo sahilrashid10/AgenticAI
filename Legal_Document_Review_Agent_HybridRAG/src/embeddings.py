@@ -1,12 +1,15 @@
 from sentence_transformers import SentenceTransformer
-from typing import List
+
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
 
-def get_embedding_model(model_name: str = "all-MiniLM-L6-v2") -> SentenceTransformer:
-    """Placeholder: return a SentenceTransformer model instance."""
-    raise NotImplementedError
+def generate_embeddings(chunks):
 
+    if not chunks:
+        raise ValueError("No chunks were provided for embedding.")
 
-def embed_texts(model: SentenceTransformer, texts: List[str]) -> List[List[float]]:
-    """Placeholder: embed texts using the provided model."""
-    raise NotImplementedError
+    texts = [chunk.text for chunk in chunks]
+
+    embeddings = model.encode(texts)
+
+    return embeddings

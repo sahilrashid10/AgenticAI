@@ -390,3 +390,31 @@ That's a very strong engineering answer.
 
 
 ##
+Interview Question ⭐⭐⭐
+
+Why maintain character offsets or page boundaries during PDF ingestion?
+
+A strong answer:
+
+"When the document is merged into a single text stream for chunking, page information would normally be lost. By recording where each page starts, we can later map any chunk's character offsets back to its original page range. This enables accurate citations, debugging, and source highlighting."
+
+##
+Engineering Principle ⭐
+
+This is one of my favorite principles.
+
+Don't optimize something that isn't a bottleneck.
+
+Will looping through 100 items ever be the slowest part of our RAG pipeline?
+
+No.
+
+
+##
+Interview Question ⭐
+
+Why don't we pass the entire Chunk object to the embedding model?
+
+Strong answer:
+
+"The embedding model only operates on textual content. Metadata such as page numbers, document IDs, and character offsets are useful for retrieval and citations but are not part of the semantic representation being embedded."
