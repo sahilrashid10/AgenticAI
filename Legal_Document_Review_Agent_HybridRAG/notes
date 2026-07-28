@@ -527,3 +527,58 @@ Pages: {chunk.start_page}-{chunk.end_page}
     return "\n\n-------------------------\n\n".join(context_parts)
 
 ##
+Interview Tip ⭐
+
+If someone asks:
+
+"How would you implement Hybrid Search from scratch?"
+
+You can say:
+
+"Conceptually, I retrieve semantically similar chunks using embeddings and exact keyword matches using lexical search. I then merge the results, remove duplicates, and pass the combined context to the LLM. In production, I'd replace the simple keyword search with BM25 or a search engine like Azure AI Search or Elasticsearch."
+
+That's a strong answer.
+
+##
+What to say in your presentation/interview
+
+"I first perform semantic retrieval using ChromaDB embeddings. In parallel, I perform a keyword search over the document chunks. I then merge both result sets while removing duplicate chunks using their IDs. This improves retrieval because vector search captures semantic similarity, whereas keyword search catches exact term matches that embeddings might miss."
+
+That's exactly what interviewers want to hear.
+
+##
+PDF
+ │
+ ▼
+Read PDF
+ │
+ ▼
+Chunk Text
+ │
+ ▼
+Generate Embeddings
+ │
+ ▼
+Store in ChromaDB
+ │
+ ▼
+──────── User asks a question ────────
+ │
+ ▼
+Vector Search        Keyword Search
+       \            /
+        \          /
+         ▼        ▼
+      Merge Results
+           │
+           ▼
+     Build Context
+           │
+           ▼
+     Semantic Kernel
+           │
+           ▼
+        Groq LLM
+           │
+           ▼
+        Final Answer

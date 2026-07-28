@@ -13,11 +13,11 @@ embeddings = generate_embeddings(chunks)
 
 store_embeddings(chunks, embeddings)
 
-from src.retriever import retrieve
+from src.retriever import hybrid_retrieve
 
 from src.context_builder import build_context
 
-retrieved_chunks = retrieve("What is Confidential Information?")
+retrieved_chunks = hybrid_retrieve("What is Confidential Information?", chunks, top_k=3)
 
 print(retrieved_chunks)
 
