@@ -11,19 +11,38 @@ def store_embeddings(chunks, embeddings):
 
     ids = []
 
-    metadata = []
+    documents = []
 
-    for i in range(len(chunks)):
-        ids.append(f"chunk_{i}")
+    metadatas = []
 
-        metadata.append({
-            "source": "nda.pdf",
-            "chunk_number": i
+    for chunk in chunks:
+
+        ids.append(chunk.id)
+
+        documents.append(chunk.text)
+
+        metadatas.append({
+
+            "document": chunk.document,
+
+            "start_page": chunk.start_page,
+
+            "end_page": chunk.end_page,
+
+            "start_char": chunk.start_char,
+
+            "end_char": chunk.end_char
+
         })
 
     collection.upsert(
+
         ids=ids,
-        documents=chunks,
+
+        documents=documents,
+
         embeddings=embeddings.tolist(),
-        metadatas=metadata
+
+        metadatas=metadatas
+
     )

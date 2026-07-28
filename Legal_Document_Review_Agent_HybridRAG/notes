@@ -418,3 +418,112 @@ Why don't we pass the entire Chunk object to the embedding model?
 Strong answer:
 
 "The embedding model only operates on textual content. Metadata such as page numbers, document IDs, and character offsets are useful for retrieval and citations but are not part of the semantic representation being embedded."
+
+##
+Adapter Pattern (Very Simplified)
+
+Think of a phone charger.
+
+Your laptop has:
+
+USB-C
+
+Your phone has:
+
+Lightning
+
+You need an adapter.
+
+Exactly the same here.
+
+Our application speaks:
+
+Chunk
+
+ChromaDB speaks:
+
+ids
+
+documents
+
+embeddings
+
+metadatas
+
+vector_store.py is acting as the adapter between the two.
+
+You don't need to memorize the design pattern yet, but recognize the idea: one module translates between two interfaces.
+
+##
+Interview Question ⭐
+
+Why get_collection() instead of get_or_create_collection()?
+
+Good answer:
+
+"During retrieval the vector database should already exist. Creating a new empty collection would hide the real problem and silently return no results."
+
+That's production thinking.
+
+## 
+⭐ Interview Gold
+
+If someone asks
+
+"Why doesn't an embedding contain metadata?"
+
+I'd answer
+
+"Embeddings encode semantic meaning for similarity search, whereas metadata describes contextual information like document name, page number, or source. Keeping them separate allows the vector database to perform semantic retrieval while still returning precise references for explainability and citations."
+
+##
+What is the LLM expecting?
+
+Imagine Groq receives this:
+
+[
+    Chunk(...),
+    Chunk(...),
+    Chunk(...)
+]
+
+Can it understand a Python object?
+
+❌ No.
+
+LLMs don't understand Python objects.
+
+They only understand text (tokens).
+
+##
+⭐ Interview Tip
+
+An interviewer might ask:
+
+Why include metadata in the prompt if it isn't embedded?
+
+Good answer:
+
+"Metadata isn't used for semantic retrieval, but it provides provenance. Including document names and page numbers in the prompt helps the LLM generate explainable answers with citations while keeping the embedding focused only on semantic meaning."
+
+That's a strong AI engineering answer.
+
+##
+def build_context(chunks):
+
+    context_parts = []
+
+    for chunk in chunks:
+
+        context_parts.append(
+
+            f"""Document: {chunk.document}
+Pages: {chunk.start_page}-{chunk.end_page}
+
+{chunk.text}"""
+
+        )
+
+    return "\n\n-------------------------\n\n".join(context_parts)
+
+##

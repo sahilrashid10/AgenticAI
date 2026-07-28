@@ -4,7 +4,8 @@ from src.models import Chunk
 
 
 def get_page_number(character_position, page_starts, page_boundaries):
-
+# Find the largest page start that is less than or equal to the character position , works good with the page_starts list, which is sorted in ascending order. The bisect_right function returns the index where the character_position would be inserted to maintain order, 
+# so we subtract 1 to get the index of the largest page start that is less than or equal to the character position.
     index = bisect_right(page_starts, character_position) - 1
 
     return page_boundaries[index]["page"]
@@ -15,9 +16,9 @@ def chunk_text(document_name, pages, chunk_size=500, overlap=100):
             raise ValueError("Overlap must be smaller than chunk size.")
 
         full_text = ""
-
+        # page number : 1 - 200 : Characters, page number : 2 - 350 characters, page number : 3 - 500 characters, page number : 4 - 700 characters
         page_boundaries = []
-
+        # used for binary search to find the page number for a given character position
         page_starts = []
 
         for page in pages:
@@ -31,11 +32,11 @@ def chunk_text(document_name, pages, chunk_size=500, overlap=100):
 
             full_text += page.text + "\n"
 
-        print(page_boundaries)
-        print(page_starts)
-        print(len(full_text))
-        print(get_page_number(3500, page_starts, page_boundaries))
-        print(get_page_number(7200, page_starts, page_boundaries))
+        # print(page_boundaries)
+        # print(page_starts)
+        # print(len(full_text))
+        # print(get_page_number(3500, page_starts, page_boundaries))
+        # print(get_page_number(7200, page_starts, page_boundaries))
         chunks = []
 
         step_size = chunk_size - overlap
