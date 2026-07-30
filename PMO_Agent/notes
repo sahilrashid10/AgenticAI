@@ -1,0 +1,303 @@
+1.The Architecture We'll Build
+                User
+                  │
+                  ▼
+         Copilot Studio Agent
+                  │
+        Understands Intent
+                  │
+        Chooses Correct Tool
+                  │
+     ┌────────────┼────────────┐
+     │            │            │
+     ▼            ▼            ▼
+Power Automate  Azure DevOps  Graph API
+     │            │            │
+     └────────────┼────────────┘
+                  │
+            JSON Response
+                  │
+                  ▼
+          Agent Generates Reply
+
+2. Error Handling Flow
+        User
+        │
+        ▼
+        Understand request
+        │
+        ▼
+        Do I have all required parameters?
+        │
+        ┌─┴──────────────┐
+        │                │
+        No               Yes
+        │                │
+        Ask user      Call tool
+                        │
+                        ▼
+                Did the tool succeed?
+                    │
+            ┌───────┴────────┐
+            │                │
+            Yes               No
+            │                │
+        Generate answer   Check error type
+                            │
+            ┌───────────────┼────────────────┐
+            │               │                │
+        Invalid Input    Network Error   Permission Error
+            │               │                │
+        Friendly message  Friendly message  Friendly message
+
+3.
+What is Fallback Design?
+
+Now comes the coolest part.
+
+Imagine Azure DevOps is down.
+
+Do we simply stop?
+
+Maybe not.
+
+We might have
+
+yesterday's report
+cached data
+SharePoint copy
+SQL backup
+
+Then the agent says
+
+Azure DevOps is currently unavailable. Here's the most recent project status from 15 minutes ago.
+
+The conversation continues.
+
+This is called a fallback.
+
+        User
+
+        ↓
+
+        Tool fails
+
+        ↓
+
+        Use cached data
+
+        ↓
+
+        Inform the user it's cached
+
+        ↓
+
+        Continue helping
+
+Another Type of Fallback
+
+Suppose the user asks:
+
+Show Project Alpha's sprint burndown chart.
+
+Our agent only knows project status.
+
+Instead of saying
+
+I don't know.
+
+It can say
+
+I can't generate sprint burndown charts yet, but I can provide the current sprint status and work-item summary.
+
+4.
+💡 Interview Insight
+
+If an interviewer asks:
+
+"What is the difference between error handling and fallback design?"
+
+A strong answer is:
+
+Error handling is about detecting and responding appropriately when something goes wrong (for example, an API failure or invalid input).
+Fallback design is about continuing to provide value despite that failure, such as using cached data, another data source, or an alternative capability.
+
+So every fallback is part of good error handling, but not every error handling strategy includes a fallback.
+
+5.
+User
+
+↓
+
+LLM understands request
+
+↓
+
+Reads Tool Descriptions
+
+↓
+
+Chooses Tool
+
+↓
+
+Checks Required Parameters
+
+↓
+
+Missing?
+
+↓
+
+Ask User
+
+↓
+
+Has Parameters
+
+↓
+
+Call Tool
+
+↓
+
+Tool Success?
+
+↓
+
+Yes → Generate Answer
+
+↓
+
+No → Error Handling
+
+↓
+
+Fallback (if available)
+
+↓
+
+Generate Safe Response
+
+6. ************************Everything so far has been platform-independent. These concepts apply to any agent framework.
+   
+7.
+Question:
+Understanding Microsoft Copilot Studio
+
+    Before opening Copilot Studio, we need to understand five building blocks. These appear directly in your assignment:
+
+    Topics
+    Actions
+    Entities
+    Variables
+    Conversation Routing
+
+    Most beginners confuse these, so let's build an intuition before clicking anything.
+
+
+    Imagine you're working as a receptionist in a company.
+
+    A visitor walks in and says:
+
+    "I'd like to know the status of Project Alpha."
+
+Answer:
+    What happens?
+
+    You identify what they want → That's the Topic.
+    You extract Project Alpha → That's the Entity.
+    You remember it while talking → That's a Variable.
+    You call the Project Management system → That's an Action.
+    If they suddenly ask, "Also send me today's meetings," you switch to another flow → That's Conversation Routing.
+
+    These five pieces are the backbone of Copilot Studio.
+8.Flow 1: Get Project Status.
+
+This is where the real engineering begins.
+
+Trigger:
+Called from Copilot
+        │
+        ▼
+Receive projectName
+        │
+        ▼
+Validate Input
+        │
+   Missing?
+      │
+ Yes ─────────► Return JSON Error
+      │
+ No
+      ▼
+Call Azure DevOps
+      │
+      ▼
+Success?
+   │         │
+  Yes       No
+   │         │
+Return      Check Cache
+Status         │
+               ▼
+        Return Cached Status
+
+
+9.
+Agent
+ │
+ ▼
+ProjectName
+ │
+ ▼
+Is ProjectName empty?
+ │
+ ├── Yes
+ │      │
+ │      ▼
+ │ Return JSON Error
+ │
+ └── No
+        │
+        ▼
+Call Azure DevOps
+        │
+        ├── Success
+        │      │
+        │      ▼
+        │ Return Status
+        │
+        └── Failure
+               │
+               ▼
+        Return Cached Status
+
+10. **************************************************Azure devops**********************************
+"This demonstrates the fallback strategy required by the assignment. In production, the cached status would come from a database or previous successful API response."
+
+11.
+Why this matters (Interview Question)
+
+Your instructor might ask:
+
+Why did you add a condition before Azure DevOps?
+
+Your answer:
+
+"Because ProjectName is a required parameter in the tool schema. Instead of making an unnecessary API call that would fail, the flow validates the input first and returns a user-friendly response if the parameter is missing."
+
+
+12.
+Because Power Automate owns the business logic.
+
+Copilot should never know how Azure DevOps works.
+
+Tomorrow if Azure DevOps becomes Jira,
+
+Copilot doesn't change.
+
+Only the flow changes.
+
+That's called separation of concerns.
+13.
