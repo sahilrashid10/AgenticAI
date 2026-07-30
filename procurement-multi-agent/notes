@@ -1,0 +1,12 @@
+1.
+| Topic                         | What it means in our project                                                                                                                                                                  |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Role-based collaboration**  | Each agent has one specific responsibility (Intake, Policy, Approval).                                                                                                                        |
+| **Supervisor–Worker pattern** | The workflow/controller acts as the supervisor and delegates work to worker agents.                                                                                                           |
+| **Communication channels**    | Agents pass structured information (messages/JSON) to each other.                                                                                                                             |
+| **Agent isolation**           | Each agent only knows what it needs to know and doesn't perform another agent's job.                                                                                                          |
+| **Event-driven agents**       | A new purchase request triggers the workflow, causing agents to run in sequence.                                                                                                              |
+| **A2A (Agent2Agent)**         | One agent sends its result directly to another agent.                                                                                                                                         |
+| **MCP**                       | A standard way for agents to access external tools or resources. We may not need a full MCP server for this assignment, but I'll explain where it fits and whether it should be demonstrated. |
+
+2.
