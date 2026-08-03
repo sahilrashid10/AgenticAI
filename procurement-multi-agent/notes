@@ -10,3 +10,78 @@
 | **MCP**                       | A standard way for agents to access external tools or resources. We may not need a full MCP server for this assignment, but I'll explain where it fits and whether it should be demonstrated. |
 
 2.
+
+What happens internally?
+Purchase Request
+        │
+        ▼
+Intake Agent
+        │
+Reads system prompt
+        │
+Reads purchase request
+        │
+Combines both
+        │
+Sends to Groq
+        │
+Returns structured response
+
+Notice something important.
+
+The LLM receives two things:
+
+System Prompt
++
+User Request
+
+Not just the purchase request.
+
+That's why changing only the system prompt completely changes the agent's behavior.
+
+3.
+
+Are we implementing the official Google A2A Protocol?
+
+No.
+
+This is an important distinction for your understanding.
+
+Your assignment lists A2A Protocol as a concept.
+
+Right now we're implementing the idea of Agent-to-Agent communication:
+
+Agent A
+
+↓
+
+Agent B
+
+The official A2A Protocol (introduced by Google) defines standardized message formats and discovery mechanisms between independent agents. It's a broader interoperability standard.
+
+For this assignment, passing structured information from one AutoGen agent to another is enough to demonstrate the concept unless your instructor explicitly requires the official protocol implementation.
+
+This distinction will impress your evaluator if they ask.
+
+4.
+This is an important engineering lesson
+
+You will hear this sentence a lot:
+
+LLMs talk naturally to humans.
+
+Agents should talk structurally to other agents. aka json.
+
+5.
+
+Another assignment topic ✔
+
+Remember
+
+Supervisor–Worker Pattern
+
+Technically...
+
+our main.py is already acting as the Supervisor.
+
+6.

@@ -9,34 +9,57 @@ from autogen_ext.models.openai import OpenAIChatCompletionClient
 # Load variables from .env
 load_dotenv()
 
-# Create the model client
-model_client = OpenAIChatCompletionClient(
-    model=os.getenv("MODEL_NAME"),
-    api_key=os.getenv("GROQ_API_KEY"),
-    base_url="https://api.groq.com/openai/v1",
-    model_info={
-        "vision": False,
-        "function_calling": True,
-        "json_output": True,
-        "structured_output": True,
-        "family": "llama"
-    }
-)
-# Create a simple AI agent
-assistant = AssistantAgent(
-    name="assistant",
-    model_client=model_client,
-    system_message="You are a helpful AI assistant."
-)
 
+purchase_request = """
+We need to purchase 20 Dell laptops for the new engineering team.
+"""
+
+from agents import (
+    intake_agent,
+    policy_agent,
+    approval_agent,
+    model_client
+)
 async def main():
-    response = await assistant.run(
-        task="Say hello and introduce yourself in one sentence."
+
+    intake_result = await intake_agent.run(
+        task=purchase_request
     )
 
-    print(response.messages[-1].content)
+    intake_output = intake_result.messages[-1].content
+
+    print("========== Intake Agent ==========")
+    print(intake_output)
+
+
+    policy_result = await policy_agent.run(
+        task=intake_output
+    )
+
+    policy_output = policy_result.messages[-1].content
+
+    print("\n========== Policy Agent ==========")
+    print(policy_output)
+
+
+    approval_input = f"""
+Purchase Request Analysis
+
+{intake_output}
+
+Policy Report
+
+{policy_output}
+"""
+
+    approval_result = await approval_agent.run(
+        task=approval_input
+    )
+
+    print("\n========== Approval Agent ==========")
+    print(approval_result.messages[-1].content)
 
     await model_client.close()
-
+    
 if __name__ == "__main__":
     asyncio.run(main())
