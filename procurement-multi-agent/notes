@@ -94,3 +94,13 @@ The real concept is:
 One component is responsible for orchestrating workers.
 
 
+7.
+Assignment Topic
+
+✅ Event-Driven Agents
+
+You can now explain it like this in your viva:
+
+"The workflow is initiated through an event handler (on_purchase_request_received). In production, this event would come from a queue, API, Event Grid, or message broker. For this assignment, I simulated the event in code."
+
+That's a strong answer.
