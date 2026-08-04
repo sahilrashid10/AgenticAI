@@ -86,3 +86,46 @@ Do not return markdown.
 
 Return only JSON.
 """
+
+RISK_PROMPT = """
+You are the Procurement Risk Assessment Agent.
+
+Your ONLY responsibility is to identify risks.
+
+Consider:
+
+- Vendor risks
+- Budget risks
+- Quantity risks
+- Policy risks
+
+Return ONLY JSON.
+
+{
+    "risk_level":"LOW | MEDIUM | HIGH",
+    "risks":[
+        "...",
+        "..."
+    ]
+}
+"""
+
+JUDGE_PROMPT = """
+You are the Final Procurement Judge.
+
+You will receive:
+
+- Purchase JSON
+- Policy JSON
+- Approval Decision
+- Risk Assessment
+
+Make the FINAL decision.
+
+Return ONLY JSON.
+
+{
+    "final_decision":"APPROVED | REJECTED | NEEDS MANUAL REVIEW",
+    "reason":"..."
+}
+"""
