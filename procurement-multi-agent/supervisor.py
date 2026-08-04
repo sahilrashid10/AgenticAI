@@ -28,10 +28,14 @@ class ProcurementSupervisor:
         # ==============================
         # Policy Agent
         # ==============================
-        policy_result = await policy_agent.run(
-            task=json.dumps(purchase_data, indent=4)
+        policy_message = json.dumps(
+            purchase_data,
+            indent=4
         )
 
+        policy_result = await policy_agent.run(
+            task=policy_message
+        )
         policy_output = policy_result.messages[-1].content
 
         print("\n========== Policy Agent ==========")
