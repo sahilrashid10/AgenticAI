@@ -7,8 +7,11 @@ from dotenv import load_dotenv
 from prompts import (
     INTAKE_PROMPT,
     POLICY_PROMPT,
-    APPROVAL_PROMPT
+    APPROVAL_PROMPT,
+    RISK_PROMPT,
+    JUDGE_PROMPT
 )
+
 
 load_dotenv()
 
@@ -43,4 +46,16 @@ approval_agent = AssistantAgent(
     name="ApprovalAgent",
     model_client=model_client,
     system_message=APPROVAL_PROMPT,
+)
+
+risk_agent = AssistantAgent(
+    name="RiskAgent",
+    model_client=model_client,
+    system_message=RISK_PROMPT,
+)
+
+judge_agent = AssistantAgent(
+    name="JudgeAgent",
+    model_client=model_client,
+    system_message=JUDGE_PROMPT,
 )

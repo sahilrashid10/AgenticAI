@@ -85,3 +85,12 @@ Technically...
 our main.py is already acting as the Supervisor.
 
 6.
+1. Was the Supervisor pattern just moving code out of main.py?
+
+Short answer: No. Moving the code was just how we implemented it.
+
+The real concept is:
+
+One component is responsible for orchestrating workers.
+
+

@@ -4,6 +4,8 @@ from agents import (
     intake_agent,
     policy_agent,
     approval_agent,
+    risk_agent,
+    judge_agent,
 )
 
 
@@ -40,13 +42,14 @@ class ProcurementSupervisor:
         # ==============================
         # Approval Agent
         # ==============================
-        approval_input = f"""
-Purchase JSON:
-{json.dumps(purchase_data, indent=4)}
 
-Policy JSON:
-{json.dumps(policy_data, indent=4)}
-"""
+        approval_input = f"""
+        Purchase JSON:
+        {json.dumps(purchase_data, indent=4)}
+
+        Policy JSON:
+        {json.dumps(policy_data, indent=4)}
+        """
 
         approval_result = await approval_agent.run(
             task=approval_input
@@ -57,4 +60,44 @@ Policy JSON:
         print("\n========== Approval Agent ==========")
         print(approval_output)
 
-        return approval_output
+        # ==============================
+        # Risk Agent
+        # ==============================
+
+        risk_result = await risk_agent.run(
+            task=approval_input
+        )
+
+        risk_output = risk_result.messages[-1].content
+
+        print("\n========== Risk Agent ==========")
+        print(risk_output)
+
+        # ==============================
+        # Judge Agent
+        # ==============================
+
+        judge_input = f"""
+        Purchase JSON:
+        {json.dumps(purchase_data, indent=4)}
+
+        Policy JSON:
+        {json.dumps(policy_data, indent=4)}
+
+        Approval Decision:
+        {approval_output}
+
+        Risk Assessment:
+        {risk_output}
+        """
+
+        judge_result = await judge_agent.run(
+            task=judge_input
+        )
+
+        judge_output = judge_result.messages[-1].content
+
+        print("\n========== Judge Agent ==========")
+        print(judge_output)
+
+        return judge_output
