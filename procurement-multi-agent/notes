@@ -104,3 +104,308 @@ You can now explain it like this in your viva:
 "The workflow is initiated through an event handler (on_purchase_request_received). In production, this event would come from a queue, API, Event Grid, or message broker. For this assignment, I simulated the event in code."
 
 That's a strong answer.
+
+8.
+But...
+
+Here's something important.
+
+AutoGen already supports tools directly.
+
+Like
+
+AssistantAgent(
+    tools=[...]
+)
+
+So you might ask
+
+Then why MCP?
+
+Excellent question.
+
+AutoGen Tool
+
+Only AutoGen understands it.
+
+AutoGen
+
+↓
+
+Python Function
+MCP Tool
+
+Any framework understands it.
+
+AutoGen
+
+Claude
+
+OpenAI
+
+LangGraph
+
+CrewAI
+
+↓
+
+Same MCP Tool
+
+That's why MCP is becoming an industry standard.
+
+9.
+Before we code
+
+Until now our flow was:
+
+Supervisor
+      │
+      ▼
+Policy Agent
+      │
+      ▼
+LLM thinks using only prompt
+
+Now it becomes:
+
+Supervisor
+      │
+      ▼
+Policy Agent
+      │
+      ▼
+LLM thinks
+      │
+      ▼
+"I need vendor information."
+      │
+      ▼
+search_vendor()
+      │
+      ▼
+REST API
+      │
+      ▼
+Result
+      │
+      ▼
+LLM continues thinking
+      │
+      ▼
+Final Answer
+
+Notice something important.
+
+The Python code doesn't call the tool.
+
+The LLM decides whether it needs the tool.
+
+That's the whole point of Tool Calling.
+
+10.
+
+************* IMP Learning: ****************
+This is actually one of the most important lessons you'll learn in Agentic AI.
+
+What we wanted
+
+We wanted the Policy Agent to behave like this:
+
+Policy Agent
+
+↓
+
+"I need company policy."
+
+↓
+
+Calls get_company_policy()
+
+↓
+
+Gets the result
+
+↓
+
+Thinks using that result
+
+↓
+
+Returns
+
+{
+    "status":"FAIL",
+    "violations":[...]
+}
+
+In simple words:
+
+Use the tool, then continue thinking.
+
+What actually happened
+
+Instead it did this:
+
+Policy Agent
+
+↓
+
+Calls get_company_policy()
+
+↓
+
+Gets the result
+
+↓
+
+Returns the tool result immediately
+
+So instead of giving
+
+{
+    "status":"FAIL"
+}
+
+it gave
+
+{
+    'laptop_limit':10,
+    'approved_vendors':['Dell','HP','Lenovo']
+}
+
+It basically said
+
+"Here's what the tool returned."
+
+instead of
+
+"I used the tool and here's my decision."
+
+Why did this happen?
+
+Not because your code is wrong.
+
+Not because the prompt is bad.
+
+It's because Groq's implementation of tool calling (with this model and AutoGen) stops after executing the tool instead of continuing to reason.
+
+Think of it like this:
+
+You ask an employee:
+
+"Go ask HR what the leave policy is, then tell me whether John can take leave."
+
+What we expected:
+
+Employee
+
+↓
+
+Asks HR
+
+↓
+
+Gets policy
+
+↓
+
+Reads policy
+
+↓
+
+Comes back
+
+↓
+
+"John can take leave."
+
+What actually happened:
+
+Employee
+
+↓
+
+Asks HR
+
+↓
+
+Gets policy
+
+↓
+
+Hands you the HR document
+
+↓
+
+Walks away 😂
+
+The employee forgot to do the second part.
+
+So what's our solution?
+
+Instead of asking the Policy Agent to fetch the policy...
+
+the Supervisor will fetch it.
+
+Like this:
+
+Supervisor
+
+↓
+
+get_company_policy()
+
+↓
+
+Gets policy
+
+↓
+
+Gives it to Policy Agent
+
+↓
+
+Policy Agent thinks
+
+↓
+
+Returns decision
+
+Now the Policy Agent doesn't have to call the tool.
+
+It simply receives all the information it needs.
+
+Why is this actually better?
+
+Imagine you're a manager.
+
+Would you tell your employee:
+
+"Go to the database, search everything yourself."
+
+or
+
+Would you say:
+
+"Here's the data. Now analyze it."
+
+The second one is how most real enterprise AI systems work.
+
+One sentence to remember
+
+The problem wasn't the tool. The problem was that the model returned the tool's output instead of using the tool's output to continue reasoning.
+
+So we changed the architecture:
+
+❌ Agent fetches data and reasons
+
+↓
+
+✅ Supervisor fetches data, Agent only reasons
+
+I actually like this solution better because it teaches a very important architectural principle:
+
+LLMs are good at reasoning. Python is good at fetching data. Let each do what it's best at.
+
+
+12.
