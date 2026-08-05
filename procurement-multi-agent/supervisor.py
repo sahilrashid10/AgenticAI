@@ -3,13 +3,12 @@ import re
 
 from agents import (
     intake_agent,
-    policy_agent,
+    create_policy_agent,
     approval_agent,
     risk_agent,
     judge_agent,
 )
 from tools import (
-    get_company_policy,
     search_vendor,
     get_budget,
 )
@@ -18,15 +17,19 @@ from tools import (
 class ProcurementSupervisor:
 
     @staticmethod
+    def clean_json(text):
+        return (
+            text.replace("```json", "")
+                .replace("```", "")
+                .strip()
+        )
+
+    @staticmethod
     def _load_json_response(raw_content, label):
         if not raw_content or not raw_content.strip():
             raise ValueError(f"{label} returned an empty response instead of JSON.")
 
-        cleaned_content = raw_content.strip()
-
-        if cleaned_content.startswith("```"):
-            cleaned_content = re.sub(r"^```(?:json)?\s*", "", cleaned_content)
-            cleaned_content = re.sub(r"\s*```$", "", cleaned_content).strip()
+        cleaned_content = ProcurementSupervisor.clean_json(raw_content)
 
         try:
             return json.loads(cleaned_content)
@@ -57,7 +60,6 @@ class ProcurementSupervisor:
         # Fetch External Data
         # ==============================
 
-        company_policy = get_company_policy()
 
         vendor_info = search_vendor(
             purchase_data["vendor"]
@@ -71,12 +73,11 @@ class ProcurementSupervisor:
         Purchase JSON:
         {json.dumps(purchase_data, indent=4)}
 
-        Company Policy:
-        {json.dumps(company_policy, indent=4)}
-
         Vendor Information:
         {json.dumps(vendor_info, indent=4)}
         """
+
+        policy_agent = await create_policy_agent()
 
         policy_result = await policy_agent.run(
             task=policy_input
@@ -110,6 +111,7 @@ class ProcurementSupervisor:
         )
 
         approval_output = approval_result.messages[-1].content
+        approval_output = self.clean_json(approval_output)
 
         print("\n========== Approval Agent ==========")
         print(approval_output)
@@ -123,6 +125,7 @@ class ProcurementSupervisor:
         )
 
         risk_output = risk_result.messages[-1].content
+        risk_output = self.clean_json(risk_output)
 
         print("\n========== Risk Agent ==========")
         print(risk_output)
@@ -150,6 +153,7 @@ class ProcurementSupervisor:
         )
 
         judge_output = judge_result.messages[-1].content
+        judge_output = self.clean_json(judge_output)
 
         print("\n========== Judge Agent ==========")
         print(judge_output)

@@ -409,3 +409,11 @@ LLMs are good at reasoning. Python is good at fetching data. Let each do what it
 
 
 12.
+*********************IMP*******************
+One sentence to remember for interviews
+
+The client never calls the function directly. It sends a standardized request to the MCP server, which executes the tool and returns the result. The underlying implementation can be a Python function, database query, or REST API without requiring any changes to the agent.
+
+That's the "aha!" moment. Once you understand that, MCP stops looking like "just another API" and starts looking like HTTP for AI tools.
+
+13.
