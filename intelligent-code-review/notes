@@ -1,0 +1,28 @@
+Assignment Overview
+Problem Statement
+
+Build an Intelligent Code Review Agent that automatically reviews Python code, performs security analysis, intelligently chooses the best model to use, and generates a professional review report.
+
+By the end, your application will look like this:
+
+                 User
+                  │
+                  ▼
+        Semantic Kernel
+                  │
+      ┌───────────┴────────────┐
+      │                        │
+      ▼                        ▼
+ Model Router             Code Review Skill
+      │                        │
+      │                        ▼
+      │                Review Suggestions
+      │
+      ▼
+  Small / Large LLM
+      │
+      ▼
+ Bandit Security Scan
+      │
+      ▼
+ Combined Report
