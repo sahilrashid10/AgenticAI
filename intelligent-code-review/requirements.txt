@@ -1,0 +1,4 @@
+semantic-kernel
+ollama
+bandit
+python-dotenv
